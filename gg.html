@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <style>
+        body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f8f8f8;
+}
+
+.container {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  width: 120px;
+  height: auto;
+  margin-right: 10px;
+}
+
+.title {
+  flex-grow: 1;
+}
+
+.content {
+  margin-top: 20px;
+}
+
+.form {
+  text-align: center;
+}
+
+h2 {
+  color: #333;
+}
+
+label {
+  display: block;
+  margin: 10px 0 5px;
+  color: #555;
+}
+.lb2{
+  text-align: center;
+  margin-left: 100px;
+ 
+
+}
+.cheb{
+ margin-left: -80px;
+}
+input {
+  width: calc(100% - 300px);
+  padding: 8px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  background-color: #333;
+  color: #fff;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+button:hover {
+  background-color: #555;
+}
+
+a {
+  color: #333;
+  text-decoration: none;
+}
+
+.footer {
+  
+  text-align: center;
+ margin-top: 155px;
+ width: 100%;
+ height: 30px;
+
+  
+  color: #000000;
+  background-color: gray;
+}
+.pad{
+  padding: 5px;
+}
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.6.0/firebase-database.js"></script>
+    <script src="Script.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <img src="unilogo.png" alt="University of Vavuniya Logo" class="logo">
+            <div class="title">
+                <h1>Virtual Result Center</h1>
+                <p>University of Vavuniya</p>
+            </div>
+        </header>
+        <hr>
+        <section class="content">
+            <div class="form">
+                <h2>Register</h2>
+                <form id="loginform">
+                    <label for="regnum">Registration Number</label>
+                    <input type="text" id="regnum" name="regnum" required>
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                    <label for="usertype">User Type</label>
+                    <br>
+                    <select class="select" id="usertype" name="usertype">
+                        <option value="">Select User Type</option>
+                        <option value="student">Student</option>
+                        <option value="Lecture">Lecturer</option>
+                    </select>
+                    <br>
+                    <label for="Faculty">Faculty</label>
+                    <select class="select" id="Faculty" name="Faculty" onchange="populateCourses()">
+                        <option value="fots">Faculty of Technological Studies</option>
+                        <option value="bs">Faculty of Business Studies</option>
+                        <option value="fas">Faculty of Applied Science</option>
+                    </select>
+                    <label for="course">Degree Programs</label>
+                    <select class="select" id="course" name="course"></select>
+                    <label for="Password">Password</label>
+                    <input type="password" id="Password" name="password" required>
+                    <label for="conpassword">Confirm Password</label>
+                    <input type="password" id="conpassword" name="conpassword" required>
+                    <br>
+                    <button onclick="register()">Register</button>
+                    <button type="reset">Reset</button>
+                </form>
+            </div>
+            <center><p><a href="index.html"><u>Login</u></a></p></center>
+        </section>
+    </div>
+    <footer class="footer">
+        <p class="pad">© 2023 University of Vavuniya. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB1KI9SJ42kAc4mIIP3hZfWlEUzvwyp6-A",
+            authDomain: "result-center.firebaseapp.com",
+            databaseURL: "https://result-center-default-rtdb.firebaseio.com",
+            projectId: "result-center",
+            storageBucket: "result-center.appspot.com",
+            messagingSenderId: "64165779818",
+            appId: "1:64165779818:web:e747b855a7c23aa56e2d13",
+            measurementId: "G-C7FJG8VV3N"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = app.auth();
+        const database = app.database();
+
+        function register() {
+            const regnum = document.getElementById('regnum').value;
+            const email = document.getElementById('email').value;
+            const usertype = document.getElementById('usertype').value;
+            const Faculty = document.getElementById('Faculty').value;
+            const course = document.getElementById('course').value;
+            const Password = document.getElementById('Password').value;
+            const conpassword = document.getElementById('conpassword').value;
+
+            // Validate input fields
+            if (validate_email(email) === false || validate_password() === false) {
+                alert('Email or Password is incorrect');
+                return;
+            }
+
+            if (
+                validate_field(regnum) === false ||
+                validate_field(email) === false ||
+                validate_field(usertype) === false ||
+                validate_field(Faculty) === false ||
+                validate_field(Password) === false ||
+                validate_field(conpassword) === false
+            ) {
+                alert('One or more fields are empty. Please check.');
+                return;
+            }
+
+            auth.createUserWithEmailAndPassword(email, Password)
+                .then(function () {
+                    const user = auth.currentUser;
+                    // Add user to the Firebase database
+                    const database_ref = database.ref();
+                    const user_data = {
+                        regnum: regnum,
+                        email: email,
+                        usertype: usertype,
+                        Faculty: Faculty,
+                        course: course,
+                        Password: Password,
+                        last_login: Date.now()
+                    };
+                    alert('User created');
+                    database_ref.child('users/' + user.uid).set(user_data);
+                })
+                .catch(function (error) {
+                    const error_code = error.code;
+                    const error_message = error.message;
+                    alert(error_message);
+                });
+        }
+
+        function validate_email(email) {
+            const expression = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+            return expression.test(email);
+        }
+
+        function validate_password() {
+            const Password = document.getElementById('Password').value;
+            return Password.length >= 6;
+        }
+
+        function validate_field(field) {
+            return field != null && field.trim() !== '';
+        }
+    </script>
+</body>
+</html>
